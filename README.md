@@ -14,6 +14,10 @@ Run `ng generate component component-name` to generate a new component. You can 
 
 Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
 
+## Backend endpoint configuration
+
+HTTP calls target `http://localhost:8080` by default. To point the UI at a different backend without rebuilding, set `window.HOTEL_API_BASE_URL` before the Angular bundle loads (for example in `index.html` or via a hosting platform injection script).
+
 ## Running unit tests
 
 Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
