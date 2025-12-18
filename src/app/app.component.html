@@ -28,19 +28,37 @@
         <h2>Hotel catalog</h2>
         <p>Results ordered by review score.</p>
       </header>
-      <form class="inline-form">
-        <input type="text" placeholder="Search by city" aria-label="City filter" />
-        <button type="button">Apply</button>
-        <button type="button" class="ghost">Reset</button>
+      <form class="inline-form" (ngSubmit)="applyHotelFilter()">
+        <input
+          type="text"
+          placeholder="Search by city"
+          aria-label="City filter"
+          [formControl]="hotelFilterControl"
+        />
+        <button type="submit" [disabled]="hotelsLoading">
+          {{ hotelsLoading ? 'Searching…' : 'Apply' }}
+        </button>
+        <button
+          type="button"
+          class="ghost"
+          (click)="resetHotelFilter()"
+          [disabled]="hotelsLoading"
+        >
+          Reset
+        </button>
       </form>
+      <p class="error" *ngIf="hotelsError">{{ hotelsError }}</p>
       <div class="list">
-        <article *ngFor="let hotel of sampleHotels" class="hotel-card">
+        <article *ngFor="let hotel of hotels" class="hotel-card">
           <div>
             <h3>{{ hotel.name }}</h3>
-            <p class="muted">{{ hotel.city }} • {{ hotel.rooms }} rooms</p>
+            <p class="muted">{{ hotel.city }} • {{ hotel.roomCount }} rooms</p>
           </div>
           <span class="rating">{{ hotel.rating }}</span>
         </article>
+        <p class="muted" *ngIf="!hotels.length && !hotelsLoading">
+          No hotels found. Try another filter.
+        </p>
       </div>
     </section>
 
