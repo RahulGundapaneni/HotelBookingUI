@@ -67,38 +67,57 @@
         <h2>Availability search</h2>
         <p>This will show rooms that match the criteria.</p>
       </header>
-      <form class="form-grid">
+      <form class="form-grid" [formGroup]="availabilityForm" (ngSubmit)="searchAvailability()">
         <label>
           City
-          <input type="text" placeholder="Austin" />
+          <input
+            type="text"
+            placeholder="Austin"
+            formControlName="city"
+            [disabled]="roomsLoading"
+          />
         </label>
         <label>
           Check-in
-          <input type="date" />
+          <input type="date" formControlName="checkIn" [disabled]="roomsLoading" />
         </label>
         <label>
           Check-out
-          <input type="date" />
+          <input type="date" formControlName="checkOut" [disabled]="roomsLoading" />
         </label>
         <label>
           Guests
-          <input type="number" min="1" value="2" />
+          <input type="number" min="1" formControlName="guests" [disabled]="roomsLoading" />
         </label>
-        <button type="button" class="primary">Find rooms</button>
+        <button type="submit" class="primary" [disabled]="roomsLoading">
+          {{ roomsLoading ? 'Searching…' : 'Find rooms' }}
+        </button>
       </form>
+      <p class="error" *ngIf="roomsError">{{ roomsError }}</p>
+      <p class="muted" *ngIf="roomsLoading">Searching available rooms…</p>
       <div class="list room-list">
-        <article *ngFor="let room of sampleRooms" class="room-card">
+        <article *ngFor="let room of rooms" class="room-card">
           <div>
             <h3>{{ room.hotelName }} • {{ room.roomNumber }}</h3>
             <p class="muted">
-              {{ room.roomType }} · Sleeps {{ room.capacity }}
+              {{ room.roomType }} · Sleeps {{ room.capacity }} · {{ room.hotelRating }}★
             </p>
           </div>
           <div class="room-actions">
-            <p class="rate">${{ room.baseRate }} <span>/night</span></p>
-            <button type="button">Book this room</button>
+            <ng-container *ngIf="room.baseRate !== null; else rateUnknown">
+              <p class="rate">${{ room.baseRate }} <span>/night</span></p>
+            </ng-container>
+            <ng-template #rateUnknown>
+              <p class="rate">Rate on request</p>
+            </ng-template>
+            <button type="button" (click)="selectRoom(room)" [disabled]="roomsLoading">
+              Book this room
+            </button>
           </div>
         </article>
+        <p class="muted" *ngIf="!rooms.length && !roomsLoading && !roomsError">
+          No rooms available for that search yet.
+        </p>
       </div>
     </section>
 
@@ -107,10 +126,19 @@
         <h2>Booking details</h2>
         <p>Guest information and final confirmation.</p>
       </header>
-      <div class="selected-room-banner">
-        Booking <strong>Central Plaza</strong>, room <strong>1204</strong> for
-        <strong>3 nights</strong>.
+      <div class="selected-room-banner" *ngIf="selectedRoom; else selectionPrompt">
+        Booking <strong>{{ selectedRoom.hotelName }}</strong>, room
+        <strong>{{ selectedRoom.roomNumber }}</strong>
+        <ng-container *ngIf="stayNights; else nightsUnknown">
+          for <strong>{{ stayNights }}</strong> nights.
+        </ng-container>
+        <ng-template #nightsUnknown>for your selected dates.</ng-template>
       </div>
+      <ng-template #selectionPrompt>
+        <div class="selected-room-banner muted">
+          Select a room from availability to start booking.
+        </div>
+      </ng-template>
       <form class="form-grid">
         <label>
           First name

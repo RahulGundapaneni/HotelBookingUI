@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { BookingApiService } from './booking-api.service';
-import type { HotelSummary } from './models';
+import type { AvailableRoom, HotelSummary } from './models';
 
 @Component({
   selector: 'app-root',
@@ -17,37 +17,26 @@ export class AppComponent {
   private readonly fb = inject(FormBuilder);
 
   hotelFilterControl = this.fb.control('');
+  availabilityForm = this.fb.nonNullable.group({
+    city: ['Austin', Validators.required],
+    checkIn: [this.formatDateOffset(1), Validators.required],
+    checkOut: [this.formatDateOffset(3), Validators.required],
+    guests: [2, [Validators.required, Validators.min(1)]],
+  });
 
   hotels: HotelSummary[] = [];
   hotelsLoading = false;
   hotelsError = '';
 
+  rooms: AvailableRoom[] = [];
+  roomsLoading = false;
+  roomsError = '';
+  selectedRoom: AvailableRoom | null = null;
+
   constructor() {
     this.loadHotels();
+    this.searchAvailability();
   }
-
-  sampleHotels = [
-    { name: 'Central Plaza', city: 'Austin', rating: 4.6, rooms: 38 },
-    { name: 'Riverwalk Suites', city: 'San Antonio', rating: 4.4, rooms: 24 },
-    { name: 'Hill Country Inn', city: 'Fredericksburg', rating: 4.2, rooms: 18 },
-  ];
-
-  sampleRooms = [
-    {
-      hotelName: 'Central Plaza',
-      roomNumber: '1204',
-      roomType: 'DELUXE',
-      capacity: 3,
-      baseRate: 189,
-    },
-    {
-      hotelName: 'Riverwalk Suites',
-      roomNumber: '807',
-      roomType: 'STANDARD',
-      capacity: 2,
-      baseRate: 149,
-    },
-  ];
 
   async loadHotels(city?: string) {
     this.hotelsLoading = true;
@@ -70,5 +59,51 @@ export class AppComponent {
   resetHotelFilter() {
     this.hotelFilterControl.setValue('');
     this.loadHotels();
+  }
+
+  async searchAvailability() {
+    if (this.availabilityForm.invalid) {
+      this.availabilityForm.markAllAsTouched();
+      return;
+    }
+
+    this.roomsLoading = true;
+    this.roomsError = '';
+    const search = this.availabilityForm.getRawValue();
+
+    try {
+      this.rooms = await firstValueFrom(this.api.searchAvailability(search));
+      if (this.selectedRoom && !this.rooms.some((room) => room.roomId === this.selectedRoom?.roomId)) {
+        this.selectedRoom = null;
+      }
+    } catch (error) {
+      this.rooms = [];
+      this.roomsError =
+        error instanceof Error ? error.message : 'Unable to search room availability.';
+    } finally {
+      this.roomsLoading = false;
+    }
+  }
+
+  selectRoom(room: AvailableRoom) {
+    this.selectedRoom = room;
+  }
+
+  get stayNights(): number | null {
+    const { checkIn, checkOut } = this.availabilityForm.getRawValue();
+    if (!checkIn || !checkOut) {
+      return null;
+    }
+    const start = new Date(checkIn);
+    const end = new Date(checkOut);
+    const diffInMs = end.getTime() - start.getTime();
+    const nights = Math.round(diffInMs / (1000 * 60 * 60 * 24));
+    return nights > 0 ? nights : null;
+  }
+
+  private formatDateOffset(daysFromToday: number) {
+    const date = new Date();
+    date.setDate(date.getDate() + daysFromToday);
+    return date.toISOString().slice(0, 10);
   }
 }
