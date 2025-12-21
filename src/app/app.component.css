@@ -85,6 +85,12 @@
   color: #64748b;
 }
 
+.error {
+  color: #b91c1c;
+  margin: 0;
+  font-weight: 600;
+}
+
 .inline-form {
   display: flex;
   flex-wrap: wrap;
