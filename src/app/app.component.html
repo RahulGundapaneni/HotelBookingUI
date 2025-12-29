@@ -74,20 +74,51 @@
             type="text"
             placeholder="Austin"
             formControlName="city"
+            [class.invalid]="showControlInvalid('city')"
             [disabled]="roomsLoading"
           />
+          <p class="field-error" *ngIf="showControlError('city', 'required')">City is required.</p>
         </label>
         <label>
           Check-in
-          <input type="date" formControlName="checkIn" [disabled]="roomsLoading" />
+          <input
+            type="date"
+            formControlName="checkIn"
+            [class.invalid]="showControlInvalid('checkIn')"
+            [disabled]="roomsLoading"
+          />
+          <p class="field-error" *ngIf="showControlError('checkIn', 'required')">
+            Check-in date is required.
+          </p>
         </label>
         <label>
           Check-out
-          <input type="date" formControlName="checkOut" [disabled]="roomsLoading" />
+          <input
+            type="date"
+            formControlName="checkOut"
+            [class.invalid]="showControlInvalid('checkOut') || availabilityForm.hasError('dateOrder')"
+            [disabled]="roomsLoading"
+          />
+          <p class="field-error" *ngIf="showControlError('checkOut', 'required')">
+            Check-out date is required.
+          </p>
+          <p class="field-error" *ngIf="availabilityForm.hasError('dateOrder') && availabilityForm.touched">
+            Check-out must be after the check-in date.
+          </p>
         </label>
         <label>
           Guests
-          <input type="number" min="1" formControlName="guests" [disabled]="roomsLoading" />
+          <input
+            type="number"
+            min="1"
+            formControlName="guests"
+            [class.invalid]="showControlInvalid('guests')"
+            [disabled]="roomsLoading"
+          />
+          <p class="field-error" *ngIf="showControlError('guests', 'required')">Guests required.</p>
+          <p class="field-error" *ngIf="showControlError('guests', 'min')">
+            At least one guest is required.
+          </p>
         </label>
         <button type="submit" class="primary" [disabled]="roomsLoading">
           {{ roomsLoading ? 'Searching…' : 'Find rooms' }}
