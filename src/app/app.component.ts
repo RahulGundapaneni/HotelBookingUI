@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { BookingApiService } from './booking-api.service';
 import type { AvailableRoom, HotelSummary } from './models';
@@ -17,12 +17,16 @@ export class AppComponent {
   private readonly fb = inject(FormBuilder);
 
   hotelFilterControl = this.fb.control('');
-  availabilityForm = this.fb.nonNullable.group({
-    city: ['Austin', Validators.required],
-    checkIn: [this.formatDateOffset(1), Validators.required],
-    checkOut: [this.formatDateOffset(3), Validators.required],
-    guests: [2, [Validators.required, Validators.min(1)]],
-  });
+  availabilityForm = this.fb.nonNullable.group(
+    {
+      city: ['Austin', Validators.required],
+      checkIn: [this.formatDateOffset(1), Validators.required],
+      checkOut: [this.formatDateOffset(3), Validators.required],
+      guests: [2, [Validators.required, Validators.min(1)]],
+    },
+    { validators: this.checkOutAfterCheckInValidator() },
+  );
+  availabilityControls = this.availabilityForm.controls;
 
   hotels: HotelSummary[] = [];
   hotelsLoading = false;
@@ -89,6 +93,16 @@ export class AppComponent {
     this.selectedRoom = room;
   }
 
+  showControlInvalid(controlName: keyof typeof this.availabilityControls) {
+    const control = this.availabilityControls[controlName];
+    return control.invalid && (control.touched || control.dirty);
+  }
+
+  showControlError(controlName: keyof typeof this.availabilityControls, errorCode: string) {
+    const control = this.availabilityControls[controlName];
+    return control.hasError(errorCode) && (control.touched || control.dirty);
+  }
+
   get stayNights(): number | null {
     const { checkIn, checkOut } = this.availabilityForm.getRawValue();
     if (!checkIn || !checkOut) {
@@ -99,6 +113,18 @@ export class AppComponent {
     const diffInMs = end.getTime() - start.getTime();
     const nights = Math.round(diffInMs / (1000 * 60 * 60 * 24));
     return nights > 0 ? nights : null;
+  }
+
+  private checkOutAfterCheckInValidator(): ValidatorFn {
+    return (group) => {
+      const checkIn = group.get('checkIn')?.value;
+      const checkOut = group.get('checkOut')?.value;
+      if (!checkIn || !checkOut) {
+        return null;
+      }
+      const isAfter = new Date(checkOut).getTime() > new Date(checkIn).getTime();
+      return isAfter ? null : { dateOrder: true };
+    };
   }
 
   private formatDateOffset(daysFromToday: number) {
