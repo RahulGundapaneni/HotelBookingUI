@@ -170,6 +170,33 @@
           Select a room from availability to start booking.
         </div>
       </ng-template>
+      <div class="stay-summary" *ngIf="selectedRoom && stayNights">
+        <div class="summary-header">
+          <span>Stay summary</span>
+          <span class="tag">Estimate</span>
+        </div>
+        <div class="summary-row">
+          <span>Nights</span>
+          <span>{{ stayNights }}</span>
+        </div>
+        <ng-container *ngIf="selectedRoom.baseRate !== null; else rateUnavailable">
+          <div class="summary-row">
+            <span>Nightly rate</span>
+            <span>${{ selectedRoom.baseRate }}</span>
+          </div>
+        </ng-container>
+        <ng-template #rateUnavailable>
+          <div class="summary-row">
+            <span>Nightly rate</span>
+            <span class="muted">Rate on request</span>
+          </div>
+        </ng-template>
+        <div class="summary-row total" *ngIf="estimatedTotal !== null">
+          <span>Estimated total</span>
+          <span>${{ estimatedTotal }}</span>
+        </div>
+        <p class="muted fine-print">Taxes and fees not included.</p>
+      </div>
       <form class="form-grid">
         <label>
           First name

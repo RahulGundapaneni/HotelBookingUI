@@ -115,6 +115,17 @@ export class AppComponent {
     return nights > 0 ? nights : null;
   }
 
+  get estimatedTotal(): number | null {
+    if (!this.selectedRoom || this.selectedRoom.baseRate === null) {
+      return null;
+    }
+    const nights = this.stayNights;
+    if (!nights) {
+      return null;
+    }
+    return this.selectedRoom.baseRate * nights;
+  }
+
   private checkOutAfterCheckInValidator(): ValidatorFn {
     return (group) => {
       const checkIn = group.get('checkIn')?.value;
