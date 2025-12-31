@@ -236,6 +236,49 @@ button.primary {
   color: #312e81;
 }
 
+.stay-summary {
+  border: 1px solid #e0e7ff;
+  border-radius: 0.85rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f8fafc, #eef2ff);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #0f172a;
+}
+
+.summary-row.total {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 0.5rem;
+  font-weight: 700;
+}
+
+.tag {
+  background: #312e81;
+  color: #fff;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+
+.fine-print {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
 .confirmation {
   border: 1px dashed #c7d2fe;
   border-radius: 0.85rem;
